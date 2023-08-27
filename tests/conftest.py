@@ -90,3 +90,10 @@ def validate_window_full_page(driver, eyes, tag="full_page_screenshot"):
     eyes.force_full_page_screenshot = True
     eyes.check_window(tag=tag)
     close_eyes(eyes)
+
+
+def validate_element(driver, eyes, element, tag="region"):
+    open_eyes(driver, eyes)
+    eyes.match_level = MatchLevel.LAYOUT
+    eyes.check_region(element, tag=tag)
+    close_eyes(eyes)
