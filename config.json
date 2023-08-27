@@ -1,0 +1,5 @@
+{
+  "browser": "Firefox",
+  "implicit_wait": 10,
+  "APPLITOOLS_API_KEY": ""
+}
