@@ -97,3 +97,9 @@ def validate_element(driver, eyes, element, tag="region"):
     eyes.match_level = MatchLevel.LAYOUT
     eyes.check_region(element, tag=tag)
     close_eyes(eyes)
+
+
+def validate_frame(driver, eyes, frame_reference, region, tag="region_in_frame"):
+    open_eyes(driver, eyes)
+    eyes.check_region_in_frame(frame_reference, region, tag=tag)
+    close_eyes(eyes)
