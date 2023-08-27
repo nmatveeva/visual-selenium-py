@@ -7,10 +7,8 @@ from applitools.selenium import Eyes
 from selenium import webdriver
 
 from constants import BASE_DIR
-from pages.dynamic_content import DynamicContentPage
 
 APP_NAME = "the-internet"
-APP_UNDER_TEST = DynamicContentPage.URL
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -24,8 +22,8 @@ def pytest_configure(config: pytest.Config) -> None:
 
 @pytest.fixture(scope='session')
 def config():
-
-    with open('config.json') as config_file:
+    # Read the config file
+    with open(f'{BASE_DIR}config.json') as config_file:
         config = json.load(config_file)
 
     return config
@@ -48,8 +46,10 @@ def driver(config):
     # Make its calls wait for elements to appear
     driver.implicitly_wait(config['implicit_wait'])
 
-    driver.get(APP_UNDER_TEST)
+    # Return the WebDriver instance for the setup
     yield driver
+
+    # Quit the WebDriver instance for the cleanup
     driver.quit()
 
 
@@ -78,8 +78,15 @@ def close_eyes(eyes):
     eyes.close()
 
 
-def validate_window(driver, eyes, tag=None):
+def validate_window_layout_level(driver, eyes, tag="layout_level"):
     open_eyes(driver, eyes)
     eyes.match_level = MatchLevel.LAYOUT
+    eyes.check_window(tag=tag)
+    close_eyes(eyes)
+
+
+def validate_window_full_page(driver, eyes, tag="full_page_screenshot"):
+    open_eyes(driver, eyes)
+    eyes.force_full_page_screenshot = True
     eyes.check_window(tag=tag)
     close_eyes(eyes)

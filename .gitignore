@@ -6,6 +6,7 @@ Pipfile.lock
 
 reports/*
 .idea/*
+config.json
 
 # C extensions
 *.so
