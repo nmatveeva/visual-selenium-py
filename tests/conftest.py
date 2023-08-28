@@ -2,13 +2,12 @@ import json
 import os
 from datetime import datetime as dt
 import pytest
-from applitools.common import MatchLevel
-from applitools.selenium import Eyes
 from selenium import webdriver
 
 from constants import BASE_DIR
+from core.eyes_manager import EyesManager
 
-APP_NAME = "the-internet"
+APP_NAME = "the-internet.herokuapp.com"
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -29,7 +28,7 @@ def config():
     return config
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def driver(config):
     # Init the Webdriver instance
     if config['browser'] == 'Chrome':
@@ -46,6 +45,9 @@ def driver(config):
     # Make its calls wait for elements to appear
     driver.implicitly_wait(config['implicit_wait'])
 
+    # Maximize the browser window
+    driver.maximize_window()
+
     # Return the WebDriver instance for the setup
     yield driver
 
@@ -53,53 +55,15 @@ def driver(config):
     driver.quit()
 
 
-def initialize_eyes(config):
-    eyes = Eyes()
-    eyes.api_key = config["APPLITOOLS_API_KEY"]
-    return eyes
+@pytest.fixture(scope="module")
+def manager(driver):
+    eyes_manager = EyesManager(driver)
+    yield eyes_manager
 
 
-@pytest.fixture(scope="function")
-def eyes(config):
-    eyes = initialize_eyes(config)
-    yield eyes
-
-
-def open_eyes(driver, eyes):
-    eyes.open(driver, APP_NAME, test_name=get_test_name())
-
-
-def get_test_name():
-    import inspect
-    return inspect.stack()[3].function
-
-
-def close_eyes(eyes):
-    eyes.close()
-
-
-def validate_window_layout_level(driver, eyes, tag="layout_level"):
-    open_eyes(driver, eyes)
-    eyes.match_level = MatchLevel.LAYOUT
-    eyes.check_window(tag=tag)
-    close_eyes(eyes)
-
-
-def validate_window_full_page(driver, eyes, tag="full_page_screenshot"):
-    open_eyes(driver, eyes)
-    eyes.force_full_page_screenshot = True
-    eyes.check_window(tag=tag)
-    close_eyes(eyes)
-
-
-def validate_element(driver, eyes, element, tag="region"):
-    open_eyes(driver, eyes)
-    eyes.match_level = MatchLevel.LAYOUT
-    eyes.check_region(element, tag=tag)
-    close_eyes(eyes)
-
-
-def validate_frame(driver, eyes, frame_reference, region, tag="region_in_frame"):
-    open_eyes(driver, eyes)
-    eyes.check_region_in_frame(frame_reference, region, tag=tag)
-    close_eyes(eyes)
+@pytest.fixture(scope="function", autouse=True)
+def setup_eyes(request, setup_suite, manager):
+    test_name = request.function.__name__
+    manager.open_eyes(test_name)
+    yield setup_eyes
+    manager.close_eyes()
